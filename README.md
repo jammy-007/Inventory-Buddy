@@ -1,0 +1,52 @@
+# Kitchen Inventory
+
+A lightweight Android app for tracking restaurant stock. Everything is stored on the phone in a
+local SQLite (Room) database: no server, no account.
+
+- Minimum Android 8.0 (API 26), target API 35
+- Kotlin, Jetpack Compose (Material 3), Room, Navigation Compose
+- No DI framework or network libraries, to keep the APK small
+
+## What's in it so far
+
+- **Items**: name, unit, category, supplier, cost per unit, reorder level, notes. Add, edit, and
+  remove (removed items are archived so their history stays available for reports).
+- **Item list**: search by item or supplier, filter by category or low stock, and a summary of
+  item count, low-stock count and total stock value.
+- **Suppliers**: add, edit and delete vendors with phone, email and notes.
+- **Stock movements**: on-hand quantity is the sum of an item's movements (opening stock, stock
+  in, usage, waste, adjustments), so every change is traceable.
+- **Record**: log deliveries (stock in), kitchen usage or waste for many items in one go, with an
+  optional note and date. Shows what stock will be after, warns when usage is more than you have,
+  and offers Undo right after saving.
+- **Quick count**: type what is on the shelf at the end of the day; the app corrects stock to match
+  with count adjustments and shows how much each item was over or short.
+- **Low-stock alerts**: after a save, a popup lists items that just dropped to their reorder
+  level, and the Stock tab shows a badge with the number of low items.
+- **History**: every stock change grouped by day, filterable by type and searchable. Tap an entry
+  to see details or delete a mistake.
+- Common units (kg, g, L, case, ...) and categories (Produce, Dairy & Eggs, ...) are pre-filled.
+
+## Building
+
+Open the folder in Android Studio, or run:
+
+```
+./gradlew assembleDebug
+```
+
+The APK lands in `app/build/outputs/apk/debug/`. Unit tests: `./gradlew testDebugUnitTest`.
+
+## Code layout
+
+```
+app/src/main/java/com/kitcheninventory/
+  data/db/     Room entities, DAOs, database and seed data
+  data/repo/   InventoryRepository, the single data entry point for screens
+  ui/items/    Item list and add/edit screens, form validation
+  ui/stock/    Record (stock in, usage, waste) and quick count screens, entry logic
+  ui/history/  Stock change history
+  ui/suppliers Supplier list and edit dialog
+  ui/common/   Shared widgets, formatting, ViewModel factory
+  ui/theme/    Material 3 theme
+```
