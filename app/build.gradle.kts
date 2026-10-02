@@ -11,10 +11,10 @@ android {
 
     defaultConfig {
         applicationId = "com.kitcheninventory"
-        minSdk = 26 // Android 8.0
+        minSdk = 30 // Android 11
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
         // English only for now; drops translated strings pulled in by libraries.
         resourceConfigurations += listOf("en")
     }
@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+    // Google's ready-made scanner UI: no camera permission, and the model lives in Play services.
+    implementation(libs.play.services.code.scanner)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 

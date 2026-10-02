@@ -36,9 +36,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.kitcheninventory.data.db.CategoryEntity
 import com.kitcheninventory.data.db.ItemWithStock
+import com.kitcheninventory.ui.common.AppIcons
 import com.kitcheninventory.ui.common.formatQuantity
 
-/** Search box and category chips shared by the Record and Count screens. */
+/**
+ * Search box and category chips shared by the Record and Count screens. With [onScan], an empty
+ * search box shows a scan button; a scanned barcode is searched like typed text.
+ */
 @Composable
 fun ItemFilterBar(
     query: String,
@@ -48,6 +52,7 @@ fun ItemFilterBar(
     onToggleCategory: (Long) -> Unit,
     lowStockOnly: Boolean? = null,
     onToggleLowStock: () -> Unit = {},
+    onScan: (() -> Unit)? = null,
 ) {
     Column {
         OutlinedTextField(
@@ -55,13 +60,23 @@ fun ItemFilterBar(
             onValueChange = onQueryChange,
             placeholder = { Text("Search items") },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            trailingIcon = if (query.isNotEmpty()) {
-                {
-                    IconButton(onClick = { onQueryChange("") }) {
-                        Icon(Icons.Filled.Clear, contentDescription = "Clear search")
+            trailingIcon = when {
+                query.isNotEmpty() -> {
+                    {
+                        IconButton(onClick = { onQueryChange("") }) {
+                            Icon(Icons.Filled.Clear, contentDescription = "Clear search")
+                        }
                     }
                 }
-            } else null,
+                onScan != null -> {
+                    {
+                        IconButton(onClick = onScan) {
+                            Icon(AppIcons.Barcode, contentDescription = "Scan barcode")
+                        }
+                    }
+                }
+                else -> null
+            },
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         )

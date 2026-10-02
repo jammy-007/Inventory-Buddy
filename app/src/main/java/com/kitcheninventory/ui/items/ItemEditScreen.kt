@@ -44,6 +44,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kitcheninventory.ui.common.AppIcons
 import com.kitcheninventory.ui.common.AppViewModelFactory
 import com.kitcheninventory.ui.common.ConfirmDialog
 import com.kitcheninventory.ui.common.Dropdown
@@ -51,6 +52,7 @@ import com.kitcheninventory.ui.common.QuantityPill
 import com.kitcheninventory.ui.common.SectionCard
 import com.kitcheninventory.ui.common.currencySymbol
 import com.kitcheninventory.ui.common.formatQuantity
+import com.kitcheninventory.ui.common.rememberBarcodeScanner
 
 /** [onDone] gets a short message to show on the list, or null when the user just backed out. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,6 +67,7 @@ fun ItemEditScreen(
     val suppliers by viewModel.suppliers.collectAsStateWithLifecycle()
     var confirmArchive by rememberSaveable { mutableStateOf(false) }
     val currency = remember { currencySymbol() }
+    val scanBarcode = rememberBarcodeScanner { code -> viewModel.edit { it.copy(barcode = code) } }
 
     LaunchedEffect(state.finished) { if (state.finished) onDone(state.resultMessage) }
 
@@ -176,6 +179,21 @@ fun ItemEditScreen(
                     placeholder = "None",
                     supportingText = if (suppliers.isEmpty()) "Add suppliers from the main screen" else null,
                 )
+                OutlinedTextField(
+                    value = form.barcode,
+                    onValueChange = { v -> viewModel.edit { it.copy(barcode = v) } },
+                    label = { Text("Barcode (optional)") },
+                    isError = errors.barcode != null,
+                    supportingText = { Text(errors.barcode ?: "Scan the pack to find this item faster") },
+                    trailingIcon = {
+                        IconButton(onClick = scanBarcode) {
+                            Icon(AppIcons.Barcode, contentDescription = "Scan barcode")
+                        }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
 
             SectionCard("Stock and cost") {
@@ -211,6 +229,15 @@ fun ItemEditScreen(
                         help = "Low-stock alert level",
                     )
                 }
+                NumberField(
+                    label = "Order up to",
+                    value = form.orderUpTo,
+                    error = errors.orderUpTo,
+                    onChange = { v -> viewModel.edit { it.copy(orderUpTo = v) } },
+                    modifier = Modifier.fillMaxWidth(),
+                    suffix = unitLabel,
+                    help = "Orders refill to this level. Blank means twice the reorder level",
+                )
                 if (state.isNew) {
                     NumberField(
                         label = "Current stock",

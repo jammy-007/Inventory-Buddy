@@ -40,7 +40,10 @@ class ItemEditViewModel(
     private val itemId: Long = savedState.get<Long>("itemId") ?: 0L
     private var original: ItemEntity? = null
 
-    private val _state = MutableStateFlow(ItemEditState(isNew = itemId == 0L))
+    /** A new item can start with a barcode that was just scanned on the item list. */
+    private val _state = MutableStateFlow(
+        ItemEditState(isNew = itemId == 0L, form = ItemForm(barcode = savedState.get<String>("barcode").orEmpty())),
+    )
     val state: StateFlow<ItemEditState> = _state.asStateFlow()
 
     val units: StateFlow<List<UnitEntity>> = repo.units.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -72,7 +75,8 @@ class ItemEditViewModel(
         viewModelScope.launch {
             val form = current.form
             val taken = form.name.isNotBlank() && repo.isNameTaken(form.name, excludeId = itemId)
-            val errors = validate(form, current.isNew, taken)
+            val barcodeTaken = form.barcode.isNotBlank() && repo.isBarcodeTaken(form.barcode, excludeId = itemId)
+            val errors = validate(form, current.isNew, taken, barcodeTaken)
             if (!errors.isEmpty) {
                 _state.update { it.copy(errors = errors, saving = false) }
                 return@launch

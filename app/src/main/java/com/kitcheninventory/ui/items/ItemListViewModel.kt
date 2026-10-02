@@ -27,9 +27,10 @@ private data class Filters(val query: String, val categoryId: Long?, val lowStoc
 
 class ItemListViewModel(repo: InventoryRepository) : ViewModel() {
     private val filters = MutableStateFlow(Filters("", null, false))
+    private val allItems = repo.activeItems.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val state: StateFlow<ItemListState> =
-        combine(repo.activeItems, repo.categories, filters) { all, categories, f ->
+        combine(allItems, repo.categories, filters) { all, categories, f ->
             ItemListState(
                 loading = false,
                 items = filterItems(all, f.query, f.categoryId, f.lowStockOnly),
@@ -52,6 +53,8 @@ class ItemListViewModel(repo: InventoryRepository) : ViewModel() {
     }
 
     fun toggleLowStockOnly() { filters.value = filters.value.copy(lowStockOnly = !filters.value.lowStockOnly) }
+
+    fun itemWithBarcode(barcode: String): ItemWithStock? = allItems.value.firstOrNull { it.barcode == barcode }
 }
 
 fun filterItems(
@@ -63,7 +66,7 @@ fun filterItems(
     val q = query.trim()
     return items.filter { item ->
         (q.isEmpty() || item.name.contains(q, ignoreCase = true) ||
-            item.supplierName?.contains(q, ignoreCase = true) == true) &&
+            item.supplierName?.contains(q, ignoreCase = true) == true || item.barcode == q) &&
             (categoryId == null || item.categoryId == categoryId) &&
             (!lowStockOnly || item.isLowStock)
     }

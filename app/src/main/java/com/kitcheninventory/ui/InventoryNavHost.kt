@@ -1,5 +1,6 @@
 package com.kitcheninventory.ui
 
+import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -34,10 +35,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kitcheninventory.data.repo.InventoryRepository
+import com.kitcheninventory.ui.common.AppIcons
 import com.kitcheninventory.ui.common.AppViewModelFactory
 import com.kitcheninventory.ui.history.HistoryScreen
 import com.kitcheninventory.ui.items.ItemEditScreen
 import com.kitcheninventory.ui.items.ItemListScreen
+import com.kitcheninventory.ui.orders.OrdersScreen
+import com.kitcheninventory.ui.reports.ReportsScreen
 import com.kitcheninventory.ui.stock.CountScreen
 import com.kitcheninventory.ui.stock.RecordScreen
 import com.kitcheninventory.ui.suppliers.SupplierListScreen
@@ -48,14 +52,17 @@ import kotlinx.coroutines.flow.stateIn
 
 object Routes {
     const val ITEMS = "items"
-    const val ITEM_EDIT = "item/{itemId}"
+    const val ITEM_EDIT = "item/{itemId}?barcode={barcode}"
     const val SUPPLIERS = "suppliers"
+    const val ORDERS = "orders"
     const val RECORD = "record"
     const val COUNT = "count"
     const val HISTORY = "history"
+    const val REPORTS = "reports"
 
-    /** Use 0 to add a new item. */
-    fun itemEdit(itemId: Long) = "item/$itemId"
+    /** Use 0 to add a new item, optionally with a scanned [barcode] filled in. */
+    fun itemEdit(itemId: Long, barcode: String? = null) =
+        if (barcode == null) "item/$itemId" else "item/$itemId?barcode=${Uri.encode(barcode)}"
 }
 
 /** Key the edit screen uses to hand a snackbar message back to the item list. */
@@ -66,6 +73,7 @@ private enum class Tab(val route: String, val label: String, val icon: ImageVect
     RECORD(Routes.RECORD, "Record", Icons.Filled.Edit),
     COUNT(Routes.COUNT, "Count", Icons.Filled.CheckCircle),
     HISTORY(Routes.HISTORY, "History", Icons.Filled.DateRange),
+    REPORTS(Routes.REPORTS, "Reports", AppIcons.Chart),
 }
 
 /** App-wide state for the bottom bar: how many items are low, shown as a badge on Stock. */
@@ -120,16 +128,24 @@ fun InventoryNavHost(shell: AppShellViewModel = viewModel(factory = AppViewModel
                     .getStateFlow<String?>(MESSAGE_KEY, null)
                     .collectAsStateWithLifecycle()
                 ItemListScreen(
-                    onAddItem = { nav.navigateFrom(entry, Routes.itemEdit(0)) },
+                    onAddItem = { barcode -> nav.navigateFrom(entry, Routes.itemEdit(0, barcode)) },
                     onOpenItem = { nav.navigateFrom(entry, Routes.itemEdit(it)) },
                     onOpenSuppliers = { nav.navigateFrom(entry, Routes.SUPPLIERS) },
+                    onOpenOrders = { nav.navigateFrom(entry, Routes.ORDERS) },
                     message = message,
                     onMessageShown = { entry.savedStateHandle[MESSAGE_KEY] = null },
                 )
             }
             composable(
                 Routes.ITEM_EDIT,
-                arguments = listOf(navArgument("itemId") { type = NavType.LongType }),
+                arguments = listOf(
+                    navArgument("itemId") { type = NavType.LongType },
+                    navArgument("barcode") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
             ) { entry ->
                 ItemEditScreen(
                     onDone = { message ->
@@ -143,9 +159,13 @@ fun InventoryNavHost(shell: AppShellViewModel = viewModel(factory = AppViewModel
             composable(Routes.SUPPLIERS) { entry ->
                 SupplierListScreen(onBack = { if (nav.isShowing(entry)) nav.popBackStack() })
             }
+            composable(Routes.ORDERS) { entry ->
+                OrdersScreen(onBack = { if (nav.isShowing(entry)) nav.popBackStack() })
+            }
             composable(Routes.RECORD) { RecordScreen() }
             composable(Routes.COUNT) { CountScreen() }
             composable(Routes.HISTORY) { HistoryScreen() }
+            composable(Routes.REPORTS) { ReportsScreen() }
         }
     }
 }

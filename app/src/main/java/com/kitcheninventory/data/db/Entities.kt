@@ -1,5 +1,6 @@
 package com.kitcheninventory.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -40,7 +41,7 @@ data class SupplierEntity(
         ForeignKey(entity = CategoryEntity::class, parentColumns = ["id"], childColumns = ["categoryId"], onDelete = ForeignKey.SET_NULL),
         ForeignKey(entity = SupplierEntity::class, parentColumns = ["id"], childColumns = ["supplierId"], onDelete = ForeignKey.SET_NULL),
     ],
-    indices = [Index("unitId"), Index("categoryId"), Index("supplierId"), Index("name")],
+    indices = [Index("unitId"), Index("categoryId"), Index("supplierId"), Index("name"), Index("barcode")],
 )
 data class ItemEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -53,6 +54,10 @@ data class ItemEntity(
     /** Reorder point: stock at or below this is low. Zero means no alert. */
     val parLevel: Double = 0.0,
     val notes: String = "",
+    /** Product barcode (EAN, UPC, ...) so the item can be found by scanning it. */
+    val barcode: String? = null,
+    /** Stock level a purchase order tops up to. Zero means twice the reorder level. */
+    @ColumnInfo(defaultValue = "0") val orderUpTo: Double = 0.0,
     /** Archived items are hidden from the list but keep their history for reports. */
     val archived: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),

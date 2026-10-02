@@ -57,6 +57,7 @@ import com.kitcheninventory.ui.common.AppViewModelFactory
 import com.kitcheninventory.ui.common.EmptyState
 import com.kitcheninventory.ui.common.formatQuantity
 import com.kitcheninventory.ui.common.parseNumber
+import com.kitcheninventory.ui.common.rememberBarcodeScanner
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -71,6 +72,7 @@ fun RecordScreen(viewModel: RecordViewModel = viewModel(factory = AppViewModelFa
     val state by viewModel.state.collectAsStateWithLifecycle()
     val input = state.input
     val snackbar = remember { SnackbarHostState() }
+    val scan = rememberBarcodeScanner(viewModel::setQuery)
     val scope = rememberCoroutineScope()
     var lowAlert by remember { mutableStateOf<List<ItemWithStock>>(emptyList()) }
     var pickingDate by remember { mutableStateOf(false) }
@@ -153,6 +155,7 @@ fun RecordScreen(viewModel: RecordViewModel = viewModel(factory = AppViewModelFa
                         categories = state.categories,
                         selectedCategoryId = input.categoryId,
                         onToggleCategory = viewModel::toggleCategory,
+                        onScan = scan,
                     )
                 }
             }

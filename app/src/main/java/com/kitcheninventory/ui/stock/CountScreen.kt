@@ -38,6 +38,7 @@ import com.kitcheninventory.ui.common.AppViewModelFactory
 import com.kitcheninventory.ui.common.EmptyState
 import com.kitcheninventory.ui.common.formatQuantity
 import com.kitcheninventory.ui.common.parseNumber
+import com.kitcheninventory.ui.common.rememberBarcodeScanner
 import kotlin.math.abs
 import kotlinx.coroutines.launch
 
@@ -48,6 +49,7 @@ fun CountScreen(viewModel: CountViewModel = viewModel(factory = AppViewModelFact
     val state by viewModel.state.collectAsStateWithLifecycle()
     val input = state.input
     val snackbar = remember { SnackbarHostState() }
+    val scan = rememberBarcodeScanner(viewModel::setQuery)
     val scope = rememberCoroutineScope()
     var lowAlert by remember { mutableStateOf<List<ItemWithStock>>(emptyList()) }
 
@@ -112,6 +114,7 @@ fun CountScreen(viewModel: CountViewModel = viewModel(factory = AppViewModelFact
                         onToggleCategory = viewModel::toggleCategory,
                         lowStockOnly = input.lowStockOnly,
                         onToggleLowStock = viewModel::toggleLowStockOnly,
+                        onScan = scan,
                     )
                 }
             }

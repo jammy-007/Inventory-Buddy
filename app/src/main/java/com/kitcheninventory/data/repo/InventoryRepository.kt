@@ -5,6 +5,7 @@ import com.kitcheninventory.data.db.InventoryDatabase
 import com.kitcheninventory.data.db.ItemEntity
 import com.kitcheninventory.data.db.ItemWithStock
 import com.kitcheninventory.data.db.MovementWithItem
+import com.kitcheninventory.data.db.ReportMovement
 import com.kitcheninventory.data.db.StockMovementEntity
 import com.kitcheninventory.data.db.SupplierEntity
 import com.kitcheninventory.data.db.UnitEntity
@@ -27,6 +28,9 @@ class InventoryRepository(private val db: InventoryDatabase) {
     suspend fun isNameTaken(name: String, excludeId: Long = 0): Boolean =
         items.countActiveWithName(name.trim(), excludeId) > 0
 
+    suspend fun isBarcodeTaken(barcode: String, excludeId: Long = 0): Boolean =
+        items.countActiveWithBarcode(barcode.trim(), excludeId) > 0
+
     suspend fun addItem(item: ItemEntity, openingStock: Double): Long =
         items.insertWithOpeningStock(item, openingStock)
 
@@ -45,6 +49,8 @@ class InventoryRepository(private val db: InventoryDatabase) {
         if (list.isEmpty()) emptyList() else movements.insertAll(list)
 
     fun recentMovements(limit: Int = 500): Flow<List<MovementWithItem>> = movements.observeRecent(limit)
+
+    fun movementsBetween(from: Long, to: Long): Flow<List<ReportMovement>> = movements.observeBetween(from, to)
 
     suspend fun deleteMovements(ids: List<Long>) {
         if (ids.isNotEmpty()) movements.delete(ids)

@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
@@ -15,7 +16,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ItemEntity::class,
         StockMovementEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -32,7 +33,17 @@ abstract class InventoryDatabase : RoomDatabase() {
         fun create(context: Context): InventoryDatabase =
             Room.databaseBuilder(context, InventoryDatabase::class.java, FILE_NAME)
                 .addCallback(SeedCallback)
+                .addMigrations(MIGRATION_1_2)
                 .build()
+    }
+}
+
+/** Version 2 adds item barcodes and the order-up-to level used by purchase orders. */
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE items ADD COLUMN barcode TEXT")
+        db.execSQL("ALTER TABLE items ADD COLUMN orderUpTo REAL NOT NULL DEFAULT 0")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_items_barcode` ON `items` (`barcode`)")
     }
 }
 

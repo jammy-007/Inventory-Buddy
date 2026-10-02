@@ -31,6 +31,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -38,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kitcheninventory.data.db.ItemWithStock
+import com.kitcheninventory.ui.common.AppIcons
 import com.kitcheninventory.ui.common.AppViewModelFactory
 import com.kitcheninventory.ui.common.EmptyState
 import com.kitcheninventory.ui.common.InitialAvatar
@@ -52,13 +55,16 @@ import com.kitcheninventory.ui.common.QuantityPill
 import com.kitcheninventory.ui.common.StatTile
 import com.kitcheninventory.ui.common.formatMoney
 import com.kitcheninventory.ui.common.formatQuantity
+import com.kitcheninventory.ui.common.rememberBarcodeScanner
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemListScreen(
-    onAddItem: () -> Unit,
+    onAddItem: (barcode: String?) -> Unit,
     onOpenItem: (Long) -> Unit,
     onOpenSuppliers: () -> Unit,
+    onOpenOrders: () -> Unit,
     message: String? = null,
     onMessageShown: () -> Unit = {},
     viewModel: ItemListViewModel = viewModel(factory = AppViewModelFactory),
@@ -66,6 +72,19 @@ fun ItemListScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scope = rememberCoroutineScope()
+    // A known barcode opens its item; an unknown one offers to add it.
+    val scan = rememberBarcodeScanner { code ->
+        val match = viewModel.itemWithBarcode(code)
+        if (match != null) {
+            onOpenItem(match.id)
+        } else {
+            scope.launch {
+                val action = snackbar.showSnackbar("No item has barcode $code", actionLabel = "Add item", withDismissAction = true)
+                if (action == SnackbarResult.ActionPerformed) onAddItem(code)
+            }
+        }
+    }
 
     LaunchedEffect(message) {
         if (message != null) {
@@ -80,6 +99,12 @@ fun ItemListScreen(
             TopAppBar(
                 title = { Text("Inventory") },
                 actions = {
+                    IconButton(onClick = scan) {
+                        Icon(AppIcons.Barcode, contentDescription = "Scan barcode")
+                    }
+                    IconButton(onClick = onOpenOrders) {
+                        Icon(Icons.Filled.ShoppingCart, contentDescription = "Orders")
+                    }
                     IconButton(onClick = onOpenSuppliers) {
                         Icon(Icons.Filled.Person, contentDescription = "Suppliers")
                     }
@@ -89,7 +114,7 @@ fun ItemListScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = onAddItem,
+                onClick = { onAddItem(null) },
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
                 text = { Text("Add item") },
             )

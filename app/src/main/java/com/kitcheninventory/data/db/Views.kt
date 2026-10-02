@@ -13,6 +13,8 @@ data class ItemWithStock(
     val unitCost: Double,
     val parLevel: Double,
     val onHand: Double,
+    val barcode: String? = null,
+    val orderUpTo: Double = 0.0,
 ) {
     val isLowStock: Boolean get() = isLowStock(onHand, parLevel)
     val stockValue: Double get() = onHand * unitCost
@@ -35,4 +37,15 @@ data class MovementWithItem(
     val unitCost: Double,
     val note: String,
     val timestamp: Long,
+)
+
+/** A stock movement with just what the reports screen needs. */
+data class ReportMovement(
+    val itemId: Long,
+    val itemName: String,
+    val categoryName: String?,
+    val unitAbbreviation: String,
+    val type: MovementType,
+    val quantity: Double,
+    val unitCost: Double,
 )

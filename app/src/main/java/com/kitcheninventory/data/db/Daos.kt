@@ -50,7 +50,7 @@ abstract class ItemDao {
         """
         SELECT i.id, i.name, i.unitId, u.abbreviation AS unitAbbreviation,
                i.categoryId, c.name AS categoryName, i.supplierId, s.name AS supplierName,
-               i.unitCost, i.parLevel,
+               i.unitCost, i.parLevel, i.barcode, i.orderUpTo,
                COALESCE((SELECT SUM(m.quantity) FROM stock_movements m WHERE m.itemId = i.id), 0) AS onHand
         FROM items i
         JOIN units u ON u.id = i.unitId
@@ -67,6 +67,9 @@ abstract class ItemDao {
 
     @Query("SELECT COUNT(*) FROM items WHERE archived = 0 AND name = :name COLLATE NOCASE AND id != :excludeId")
     abstract suspend fun countActiveWithName(name: String, excludeId: Long): Int
+
+    @Query("SELECT COUNT(*) FROM items WHERE archived = 0 AND barcode = :barcode AND id != :excludeId")
+    abstract suspend fun countActiveWithBarcode(barcode: String, excludeId: Long): Int
 
     @Insert
     abstract suspend fun insert(item: ItemEntity): Long

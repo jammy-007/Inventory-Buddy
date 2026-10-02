@@ -10,6 +10,8 @@ import com.kitcheninventory.ui.AppShellViewModel
 import com.kitcheninventory.ui.history.HistoryViewModel
 import com.kitcheninventory.ui.items.ItemEditViewModel
 import com.kitcheninventory.ui.items.ItemListViewModel
+import com.kitcheninventory.ui.orders.OrdersViewModel
+import com.kitcheninventory.ui.reports.ReportsViewModel
 import com.kitcheninventory.ui.stock.CountViewModel
 import com.kitcheninventory.ui.stock.RecordViewModel
 import com.kitcheninventory.ui.suppliers.SupplierListViewModel
@@ -23,6 +25,8 @@ val AppViewModelFactory: ViewModelProvider.Factory = viewModelFactory {
     initializer { RecordViewModel(repo()) }
     initializer { CountViewModel(repo()) }
     initializer { HistoryViewModel(repo()) }
+    initializer { OrdersViewModel(repo()) }
+    initializer { ReportsViewModel(repo()) }
 }
 
 private fun androidx.lifecycle.viewmodel.CreationExtras.repo() =
