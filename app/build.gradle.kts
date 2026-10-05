@@ -38,6 +38,18 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            // Library licence texts, Kotlin metadata and coroutine debug files the app never reads.
+            excludes += listOf(
+                "META-INF/**/LICENSE.txt",
+                "META-INF/*.version",
+                "META-INF/*.kotlin_module",
+                "kotlin/**",
+                "DebugProbesKt.bin",
+            )
+        }
+    }
 }
 
 ksp {
