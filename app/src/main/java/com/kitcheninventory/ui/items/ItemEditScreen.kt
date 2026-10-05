@@ -43,6 +43,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -73,6 +75,15 @@ fun ItemEditScreen(
     val quickAdd by viewModel.quickAdd.collectAsStateWithLifecycle()
     var confirmArchive by rememberSaveable { mutableStateOf(false) }
     val currency = currencySymbol()
+    // After a quick-add pick, jump to the cost field (scrolling it into view) so it can be typed next.
+    val costFocus = remember { FocusRequester() }
+    var jumpToCost by remember { mutableStateOf(false) }
+    LaunchedEffect(jumpToCost) {
+        if (jumpToCost) {
+            costFocus.requestFocus()
+            jumpToCost = false
+        }
+    }
     val scanBarcode = rememberBarcodeScanner { code -> viewModel.edit { it.copy(barcode = code) } }
 
     LaunchedEffect(state.finished) { if (state.finished) onDone(state.resultMessage) }
@@ -144,7 +155,10 @@ fun ItemEditScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (state.isNew && quickAdd.isNotEmpty()) {
-                QuickAddSection(quickAdd, selectedName = form.name, onPick = viewModel::quickFill)
+                QuickAddSection(quickAdd, selectedName = form.name, onPick = {
+                    viewModel.quickFill(it)
+                    jumpToCost = true
+                })
             }
 
             SectionCard("Details") {
@@ -226,7 +240,7 @@ fun ItemEditScreen(
                         value = form.unitCost,
                         error = errors.unitCost,
                         onChange = { v -> viewModel.edit { it.copy(unitCost = v) } },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).focusRequester(costFocus),
                         prefix = currency,
                     )
                     NumberField(
