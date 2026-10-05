@@ -66,7 +66,7 @@ fun ItemEditScreen(
     val categories by viewModel.categories.collectAsStateWithLifecycle()
     val suppliers by viewModel.suppliers.collectAsStateWithLifecycle()
     var confirmArchive by rememberSaveable { mutableStateOf(false) }
-    val currency = remember { currencySymbol() }
+    val currency = currencySymbol()
     val scanBarcode = rememberBarcodeScanner { code -> viewModel.edit { it.copy(barcode = code) } }
 
     LaunchedEffect(state.finished) { if (state.finished) onDone(state.resultMessage) }

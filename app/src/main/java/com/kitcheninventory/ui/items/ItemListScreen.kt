@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
@@ -38,6 +39,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -49,6 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kitcheninventory.data.db.ItemWithStock
 import com.kitcheninventory.ui.common.AppIcons
 import com.kitcheninventory.ui.common.AppViewModelFactory
+import com.kitcheninventory.ui.common.CurrencyDialog
 import com.kitcheninventory.ui.common.EmptyState
 import com.kitcheninventory.ui.common.InitialAvatar
 import com.kitcheninventory.ui.common.QuantityPill
@@ -73,6 +78,7 @@ fun ItemListScreen(
     val snackbar = remember { SnackbarHostState() }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
+    var pickingCurrency by rememberSaveable { mutableStateOf(false) }
     // A known barcode opens its item; an unknown one offers to add it.
     val scan = rememberBarcodeScanner { code ->
         val match = viewModel.itemWithBarcode(code)
@@ -107,6 +113,9 @@ fun ItemListScreen(
                     }
                     IconButton(onClick = onOpenSuppliers) {
                         Icon(Icons.Filled.Person, contentDescription = "Suppliers")
+                    }
+                    IconButton(onClick = { pickingCurrency = true }) {
+                        Icon(Icons.Filled.Settings, contentDescription = "Currency")
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -203,6 +212,8 @@ fun ItemListScreen(
             }
         }
     }
+
+    if (pickingCurrency) CurrencyDialog(onDismiss = { pickingCurrency = false })
 }
 
 @Composable
