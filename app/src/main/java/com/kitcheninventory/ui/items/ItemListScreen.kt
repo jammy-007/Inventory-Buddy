@@ -193,7 +193,7 @@ fun ItemListScreen(
                         EmptyState(
                             icon = Icons.Filled.ShoppingCart,
                             title = "No items yet",
-                            message = "Tap \"Add item\" to add your first ingredient or supply.",
+                            message = "Tap \"Add item\" and pick common items like bread, cabbage or apples from Quick add.",
                         )
                     }
                 }

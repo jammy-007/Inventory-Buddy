@@ -3,6 +3,8 @@ package com.kitcheninventory.ui.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +13,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +24,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,6 +70,7 @@ fun ItemEditScreen(
     val units by viewModel.units.collectAsStateWithLifecycle()
     val categories by viewModel.categories.collectAsStateWithLifecycle()
     val suppliers by viewModel.suppliers.collectAsStateWithLifecycle()
+    val quickAdd by viewModel.quickAdd.collectAsStateWithLifecycle()
     var confirmArchive by rememberSaveable { mutableStateOf(false) }
     val currency = currencySymbol()
     val scanBarcode = rememberBarcodeScanner { code -> viewModel.edit { it.copy(barcode = code) } }
@@ -137,6 +143,10 @@ fun ItemEditScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (state.isNew && quickAdd.isNotEmpty()) {
+                QuickAddSection(quickAdd, selectedName = form.name, onPick = viewModel::quickFill)
+            }
+
             SectionCard("Details") {
                 OutlinedTextField(
                     value = form.name,
@@ -275,6 +285,41 @@ fun ItemEditScreen(
             },
             onDismiss = { confirmArchive = false },
         )
+    }
+}
+
+/**
+ * Common items grouped by category. Tapping one fills the name, unit and category, so only the
+ * cost and amount are left to type.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun QuickAddSection(items: List<QuickItem>, selectedName: String, onPick: (QuickItem) -> Unit) {
+    val groups = remember(items) { items.groupBy { it.category } }
+    var category by rememberSaveable { mutableStateOf<String?>(null) }
+    // Falls back to the first group when the chosen one has no items left.
+    val current = category?.takeIf { it in groups } ?: groups.keys.first()
+    val shown = groups.getValue(current)
+    SectionCard("Quick add") {
+        Text(
+            "Tap a common item to fill in its details. Then add the cost and how much you have.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(groups.keys.toList()) { name ->
+                FilterChip(selected = name == current, onClick = { category = name }, label = { Text(name) })
+            }
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            shown.forEach { item ->
+                FilterChip(
+                    selected = item.name == selectedName,
+                    onClick = { onPick(item) },
+                    label = { Text(item.name) },
+                )
+            }
+        }
     }
 }
 

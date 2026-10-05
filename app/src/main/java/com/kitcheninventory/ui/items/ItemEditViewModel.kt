@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -50,6 +51,14 @@ class ItemEditViewModel(
     val categories: StateFlow<List<CategoryEntity>> = repo.categories.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val suppliers: StateFlow<List<SupplierEntity>> = repo.supplierList.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    /** Quick-add items not already in the inventory (compared by name, ignoring case). */
+    val quickAdd: StateFlow<List<QuickItem>> = repo.activeItems
+        .map { items ->
+            val taken = items.map { it.name.lowercase() }.toSet()
+            quickItems.filter { it.name.lowercase() !in taken }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     init {
         if (itemId != 0L) {
             viewModelScope.launch {
@@ -67,6 +76,8 @@ class ItemEditViewModel(
     fun edit(change: (ItemForm) -> ItemForm) {
         _state.update { it.copy(form = change(it.form)) }
     }
+
+    fun quickFill(item: QuickItem) = edit { it.withQuickItem(item, units.value, categories.value) }
 
     fun save() {
         val current = _state.value
