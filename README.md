@@ -1,5 +1,9 @@
 # Kitchen Inventory
 
+[![Inventory Buddy demo: quick add, purchase orders and reports](docs/demo.jpg)](docs/demo.mp4)
+
+*20-second demo. Click the image to watch.*
+
 A lightweight Android app for tracking restaurant stock. Everything is stored on the phone in a
 local SQLite (Room) database: no server, no account.
 
