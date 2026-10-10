@@ -15,8 +15,8 @@ android {
         applicationId = "com.kitcheninventory"
         minSdk = 30 // Android 11
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
         // English only for now; drops translated strings pulled in by libraries.
         resourceConfigurations += listOf("en")
     }
