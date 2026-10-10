@@ -2,10 +2,12 @@ package com.kitcheninventory.ui.items
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.MaterialTheme
@@ -32,15 +34,16 @@ import com.kitcheninventory.ui.common.AppViewModelFactory
 import com.kitcheninventory.ui.common.EmptyState
 
 /**
- * The item opened next to the list on large screens. [itemId] 0 means a new item. [key] changes on
- * every open so each one gets a fresh form, even when the same item is opened twice.
+ * The item opened next to the list on large screens. [itemId] 0 means a new item. [key] is unique
+ * to each open, so every open gets a fresh form: a key that repeated after the pane closed would
+ * bring back an earlier item's form.
  */
-data class OpenItem(val itemId: Long, val barcode: String?, val key: Int) {
+data class OpenItem(val itemId: Long, val barcode: String?, val key: Long = System.nanoTime()) {
     companion object {
         /** Keeps the open item across rotation and process death. */
         val Saver = listSaver<OpenItem?, Any?>(
             save = { if (it == null) emptyList() else listOf(it.itemId, it.barcode, it.key) },
-            restore = { if (it.isEmpty()) null else OpenItem(it[0] as Long, it[1] as String?, it[2] as Int) },
+            restore = { if (it.isEmpty()) null else OpenItem(it[0] as Long, it[1] as String?, it[2] as Long) },
         )
     }
 }
@@ -59,43 +62,47 @@ fun StockListDetail(
     onMessageShown: () -> Unit,
 ) {
     var paneMessage by remember { mutableStateOf<String?>(null) }
-    val nextKey = (open?.key ?: 0) + 1
     BackHandler(enabled = open != null) { onOpen(null) }
 
-    Row(Modifier.fillMaxSize()) {
-        Box(Modifier.weight(0.42f).fillMaxHeight()) {
-            ItemListScreen(
-                onAddItem = { barcode -> onOpen(OpenItem(0, barcode, nextKey)) },
-                onOpenItem = { id -> onOpen(OpenItem(id, null, nextKey)) },
-                onOpenSuppliers = onOpenSuppliers,
-                onOpenOrders = onOpenOrders,
-                message = message ?: paneMessage,
-                onMessageShown = {
-                    onMessageShown()
-                    paneMessage = null
-                },
-                selectedId = open?.itemId,
-            )
-        }
-        VerticalDivider()
-        Surface(Modifier.weight(0.58f).fillMaxHeight(), color = MaterialTheme.colorScheme.background) {
-            if (open == null) {
-                Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
-                    EmptyState(Icons.Filled.Edit, "Pick an item", "Choose an item on the left to see or change it, or tap \"Add item\".")
-                }
-            } else {
-                key(open.key) {
-                    ItemEditScreen(
-                        onDone = { result ->
-                            onOpen(null)
-                            if (result != null) paneMessage = result
-                        },
-                        viewModel = viewModel(
-                            key = "item-pane-${open.key}",
-                            factory = AppViewModelFactory,
-                            extras = itemArgs(open),
-                        ),
-                    )
+    // The list never gets narrower than a phone screen, so its summary tiles and toolbar fit; on
+    // an upright tablet that leaves the form a phone-sized pane too.
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val listWidth = (maxWidth * 0.42f).coerceAtLeast(380.dp)
+        Row(Modifier.fillMaxSize()) {
+            Box(Modifier.width(listWidth).fillMaxHeight()) {
+                ItemListScreen(
+                    onAddItem = { barcode -> onOpen(OpenItem(0, barcode)) },
+                    onOpenItem = { id -> onOpen(OpenItem(id, null)) },
+                    onOpenSuppliers = onOpenSuppliers,
+                    onOpenOrders = onOpenOrders,
+                    message = message ?: paneMessage,
+                    onMessageShown = {
+                        onMessageShown()
+                        paneMessage = null
+                    },
+                    selectedId = open?.itemId,
+                )
+            }
+            VerticalDivider()
+            Surface(Modifier.weight(1f).fillMaxHeight(), color = MaterialTheme.colorScheme.background) {
+                if (open == null) {
+                    Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                        EmptyState(Icons.Filled.Edit, "Pick an item", "Choose an item on the left to see or change it, or tap \"Add item\".")
+                    }
+                } else {
+                    key(open.key) {
+                        ItemEditScreen(
+                            onDone = { result ->
+                                onOpen(null)
+                                if (result != null) paneMessage = result
+                            },
+                            viewModel = viewModel(
+                                key = "item-pane-${open.key}",
+                                factory = AppViewModelFactory,
+                                extras = itemArgs(open),
+                            ),
+                        )
+                    }
                 }
             }
         }
