@@ -218,9 +218,29 @@ private fun RangePickerDialog(initial: ReportRange, onPick: (LocalDate, LocalDat
         DateRangePicker(
             state = picker,
             title = { Text("Report dates", Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp)) },
+            // The default headline ("Sep 17, 2026 - Sep 22, 2026") wraps in the dialog; this matches
+            // the short form shown under the chips and stays on one line.
+            headline = {
+                val headline = pickerHeadline(start, picker.selectedEndDateMillis)
+                Text(
+                    headline,
+                    // Ranges across a new year ("28 Dec 2025 – 10 Oct 2026") need a size down to fit a phone.
+                    style = if (headline.length > 20) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 24.dp, end = 12.dp, bottom = 12.dp),
+                )
+            },
             modifier = Modifier.weight(1f),
         )
     }
+}
+
+/** "17 Sep – 22 Sep 2026" while picking, with placeholders for the days not chosen yet. */
+private fun pickerHeadline(startMillis: Long?, endMillis: Long?): String {
+    val start = startMillis?.let(::utcDate) ?: return "Start date – End date"
+    val end = endMillis?.let(::utcDate) ?: return "${start.format(longDay)} – End date"
+    return if (start == end) start.format(longDay) else dateSpan(start, end)
 }
 
 private fun utcDate(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
