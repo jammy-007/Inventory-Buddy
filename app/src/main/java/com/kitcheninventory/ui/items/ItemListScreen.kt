@@ -72,6 +72,8 @@ fun ItemListScreen(
     onOpenOrders: () -> Unit,
     message: String? = null,
     onMessageShown: () -> Unit = {},
+    /** The item open beside the list on tablets, highlighted. */
+    selectedId: Long? = null,
     viewModel: ItemListViewModel = viewModel(factory = AppViewModelFactory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -208,7 +210,7 @@ fun ItemListScreen(
                 }
             }
             items(state.items, key = { it.id }) { item ->
-                ItemRow(item, onClick = { onOpenItem(item.id) })
+                ItemRow(item, selected = item.id == selectedId, onClick = { onOpenItem(item.id) })
             }
         }
     }
@@ -230,15 +232,16 @@ private fun Summary(state: ItemListState) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ItemRow(item: ItemWithStock, onClick: () -> Unit) {
+private fun ItemRow(item: ItemWithStock, selected: Boolean, onClick: () -> Unit) {
     val subtitle = listOfNotNull(item.categoryName, item.supplierName).joinToString(" · ")
+    val container = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        colors = CardDefaults.cardColors(containerColor = container),
     ) {
         ListItem(
-            colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            colors = ListItemDefaults.colors(containerColor = container),
             leadingContent = { InitialAvatar(item.name) },
             headlineContent = { Text(item.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
             supportingContent = if (subtitle.isNotEmpty()) {

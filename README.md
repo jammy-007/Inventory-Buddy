@@ -39,6 +39,8 @@ local SQLite (Room) database: no server, no account.
 - **Reports**: for the last 7 or 30 days, this month or last month: value received, used, wasted
   and lost or found in counts, waste percentage, most used and most wasted items, usage by
   category, and current stock value by category.
+- **Tablets**: on wide screens the tabs move to a side rail, the Stock tab shows the item list and
+  the open item side by side, and other screens keep a comfortable reading width.
 - Common units (kg, g, L, case, ...) and categories (Produce, Dairy & Eggs, ...) are pre-filled.
 
 ## Building
