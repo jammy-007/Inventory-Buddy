@@ -5,6 +5,7 @@ import com.kitcheninventory.data.db.MovementType
 import com.kitcheninventory.data.db.ReportMovement
 import com.kitcheninventory.ui.common.formatQuantity
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 
 enum class ReportPeriod(val label: String) {
@@ -19,6 +20,23 @@ enum class ReportPeriod(val label: String) {
         MONTH -> today.minusDays(29) to today.plusDays(1)
         THIS_MONTH -> today.withDayOfMonth(1) to today.plusDays(1)
         LAST_MONTH -> today.withDayOfMonth(1).minusMonths(1) to today.withDayOfMonth(1)
+    }
+}
+
+/** The days a report covers, both ends included. */
+data class ReportRange(val start: LocalDate, val end: LocalDate) {
+    init {
+        require(!end.isBefore(start)) { "Report range ends before it starts" }
+    }
+
+    /** How many days are covered, counting both ends. */
+    val days: Long get() = ChronoUnit.DAYS.between(start, end) + 1
+
+    companion object {
+        fun of(period: ReportPeriod, today: LocalDate): ReportRange {
+            val (start, endExclusive) = period.range(today)
+            return ReportRange(start, endExclusive.minusDays(1))
+        }
     }
 }
 

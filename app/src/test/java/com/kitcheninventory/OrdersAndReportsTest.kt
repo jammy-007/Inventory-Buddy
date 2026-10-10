@@ -14,12 +14,14 @@ import com.kitcheninventory.ui.orders.orderQuantityError
 import com.kitcheninventory.ui.orders.receiveOrder
 import com.kitcheninventory.ui.orders.suggestedOrder
 import com.kitcheninventory.ui.reports.ReportPeriod
+import com.kitcheninventory.ui.reports.ReportRange
 import com.kitcheninventory.ui.reports.buildReport
 import com.kitcheninventory.ui.reports.stockValueByCategory
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -86,6 +88,20 @@ class OrdersAndReportsTest {
         assertEquals(LocalDate.of(2026, 3, 9) to LocalDate.of(2026, 3, 16), ReportPeriod.WEEK.range(today))
         assertEquals(LocalDate.of(2026, 3, 1) to LocalDate.of(2026, 3, 16), ReportPeriod.THIS_MONTH.range(today))
         assertEquals(LocalDate.of(2026, 2, 1) to LocalDate.of(2026, 3, 1), ReportPeriod.LAST_MONTH.range(today))
+    }
+
+    @Test fun reportRangesIncludeBothEnds() {
+        val today = LocalDate.of(2026, 10, 10)
+        val week = ReportRange.of(ReportPeriod.WEEK, today)
+        assertEquals(LocalDate.of(2026, 10, 4), week.start)
+        assertEquals(today, week.end)
+        assertEquals(7L, week.days)
+        assertEquals(30L, ReportRange.of(ReportPeriod.MONTH, today).days)
+        assertEquals(30L, ReportRange.of(ReportPeriod.LAST_MONTH, today).days) // September
+
+        assertEquals(1L, ReportRange(today, today).days)
+        assertEquals(31L, ReportRange(LocalDate.of(2026, 9, 10), today).days) // 21 in Sep + 10 in Oct
+        assertThrows(IllegalArgumentException::class.java) { ReportRange(today, today.minusDays(1)) }
     }
 
     private fun movement(itemId: Long, type: MovementType, quantity: Double, cost: Double, category: String? = null) =

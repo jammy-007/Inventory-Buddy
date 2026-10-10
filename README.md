@@ -36,7 +36,7 @@ local SQLite (Room) database: no server, no account.
 - **Purchase orders**: low-stock items grouped by supplier, with amounts that refill each item to
   its order-up-to level (or twice its reorder level). Adjust amounts, send the order through any
   app (email, SMS, WhatsApp...), call the supplier, and mark it received to add it to stock.
-- **Reports**: for the last 7 or 30 days, this month or last month: value received, used, wasted
+- **Reports**: for the last 7 or 30 days, this month, last month, or any dates you pick: value received, used, wasted
   and lost or found in counts, waste percentage, most used and most wasted items, usage by
   category, and current stock value by category.
 - Common units (kg, g, L, case, ...) and categories (Produce, Dairy & Eggs, ...) are pre-filled.
