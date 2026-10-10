@@ -11,6 +11,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import java.time.Instant
+import java.time.ZoneOffset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -52,6 +66,7 @@ fun ReportsScreen(viewModel: ReportsViewModel = viewModel(factory = AppViewModel
     val state by viewModel.state.collectAsStateWithLifecycle()
     val report = state.report
     val colors = MaterialTheme.colorScheme
+    var pickingRange by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Reports") }) }) { padding ->
         if (state.loading) {
@@ -87,9 +102,17 @@ fun ReportsScreen(viewModel: ReportsViewModel = viewModel(factory = AppViewModel
                                 label = { Text(period.label) },
                             )
                         }
+                        item {
+                            FilterChip(
+                                selected = state.period == null,
+                                onClick = { pickingRange = true },
+                                label = { Text("Custom") },
+                                leadingIcon = { Icon(Icons.Filled.DateRange, contentDescription = null, Modifier.size(18.dp)) },
+                            )
+                        }
                     }
                     Text(
-                        dateRange(state.start, state.end),
+                        dateRange(state.range),
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -150,7 +173,77 @@ fun ReportsScreen(viewModel: ReportsViewModel = viewModel(factory = AppViewModel
             }
         }
     }
+
+    if (pickingRange) {
+        RangePickerDialog(
+            initial = state.range,
+            onPick = { start, end ->
+                viewModel.setCustomRange(start, end)
+                pickingRange = false
+            },
+            onDismiss = { pickingRange = false },
+        )
+    }
 }
+
+/**
+ * Calendar for choosing the first and last day of a custom report. Future days can't be picked.
+ * The picker works in UTC midnight milliseconds, so dates are converted through UTC.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RangePickerDialog(initial: ReportRange, onPick: (LocalDate, LocalDate) -> Unit, onDismiss: () -> Unit) {
+    val todayUtc = LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    val picker = rememberDateRangePickerState(
+        initialSelectedStartDateMillis = initial.start.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+        initialSelectedEndDateMillis = initial.end.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= todayUtc
+            override fun isSelectableYear(year: Int) = year <= LocalDate.now().year
+        },
+    )
+    val start = picker.selectedStartDateMillis
+    // Tapping one day and confirming reports on just that day.
+    val end = picker.selectedEndDateMillis ?: start
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = { if (start != null && end != null) onPick(utcDate(start), utcDate(end)) },
+                enabled = start != null,
+            ) { Text("Show report") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    ) {
+        DateRangePicker(
+            state = picker,
+            title = { Text("Report dates", Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp)) },
+            // The default headline ("Sep 17, 2026 - Sep 22, 2026") wraps in the dialog; this matches
+            // the short form shown under the chips and stays on one line.
+            headline = {
+                val headline = pickerHeadline(start, picker.selectedEndDateMillis)
+                Text(
+                    headline,
+                    // Ranges across a new year ("28 Dec 2025 – 10 Oct 2026") need a size down to fit a phone.
+                    style = if (headline.length > 20) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 24.dp, end = 12.dp, bottom = 12.dp),
+                )
+            },
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+/** "17 Sep – 22 Sep 2026" while picking, with placeholders for the days not chosen yet. */
+private fun pickerHeadline(startMillis: Long?, endMillis: Long?): String {
+    val start = startMillis?.let(::utcDate) ?: return "Start date – End date"
+    val end = endMillis?.let(::utcDate) ?: return "${start.format(longDay)} – End date"
+    return if (start == end) start.format(longDay) else dateSpan(start, end)
+}
+
+private fun utcDate(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
 
 /** Ranked rows with a bar scaled to the largest value. */
 @Composable
@@ -195,6 +288,12 @@ private fun BarList(lines: List<ReportLine>, emptyText: String, color: Color) {
     }
 }
 
-private fun dateRange(start: LocalDate, end: LocalDate): String =
+/** "11 Sep – 10 Oct 2026 · 30 days", or "10 Oct 2026 · 1 day" for a single day. */
+private fun dateRange(range: ReportRange): String {
+    val dates = if (range.days == 1L) range.start.format(longDay) else dateSpan(range.start, range.end)
+    return "$dates  ·  ${range.days} ${if (range.days == 1L) "day" else "days"}"
+}
+
+private fun dateSpan(start: LocalDate, end: LocalDate): String =
     if (start.year == end.year) "${start.format(shortDay)} – ${end.format(longDay)}"
     else "${start.format(longDay)} – ${end.format(longDay)}"
