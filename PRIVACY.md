@@ -4,7 +4,7 @@
 
 Effective as of 13 October 2026.
 
-Inventory Buddy is a free, open-source Android app for tracking a restaurant's or kitchen's stock. It is published by Aaron ("**we**", "**us**" or "**our**"). This Privacy Policy describes how personal information is handled when you use the Inventory Buddy app (the "**Service**").
+Inventory Buddy is a free, open-source Android app for tracking a restaurant's or kitchen's stock. It is published by Aaron, an individual developer based in Bengaluru, India ("**we**", "**us**" or "**our**"). This Privacy Policy describes how personal information is handled when you use the Inventory Buddy app (the "**Service**").
 
 **In short:** Inventory Buddy has no account, no server, no analytics and no ads. Everything you enter stays on your device. We never receive it. The only exceptions are the Google services described under "Third-party services" below, which you can choose not to use, and anything you choose to send yourself (for example, an order you share with a supplier).
 
@@ -86,7 +86,7 @@ Your information is stored on your device and protected by your device's own sec
 
 ## International data transfer
 
-We do not transfer personal information, because we do not receive it from the app. Google and GitHub may process information in other countries under their own policies.
+We are based in India. We do not transfer personal information, because we do not receive it from the app. Google and GitHub may process information in other countries under their own policies.
 
 ## Children
 

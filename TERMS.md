@@ -35,10 +35,11 @@ The Inventory Buddy app (the "**App**") is published by Aaron ("**we**", "**us**
 
 9. **General**
     1. **Changes to Terms.** We may update these Terms from time to time. We will publish the updated Terms in the project repository with a new revision date, and mention material changes in the release notes. Your continued use of the App after changes are published means you accept the updated Terms.
-    2. **Export.** You agree not to export, re-export or transfer the App in violation of applicable export control laws or regulations.
-    3. **Entire agreement.** These Terms, together with the Privacy Policy and the License, are the entire agreement between you and us regarding your use of the App. If any provision of these Terms is found to be invalid or unenforceable, it will be modified to the minimum extent necessary to be valid, and the remaining provisions will continue in effect. Our failure to enforce any provision is not a waiver of that provision. The word "including" means "including without limitation."
-    4. **Copyright and trademarks.** Copyright © 2026 Aaron. The source code is licensed under the MIT License. The name "Inventory Buddy" and the App's icon identify this project. Please do not use them in a way that suggests your version is the official one or is endorsed by us.
-    5. **Contact.** Questions about these Terms: https://github.com/jammy-007/Inventory-Buddy/issues. Issues are public, so please do not include personal information.
+    2. **Governing law.** These Terms, and any dispute arising out of or related to these Terms or the App, are governed by the laws of India, without regard to conflict-of-law principles. Subject to the next sentence, the courts at Bengaluru (Bangalore), Karnataka, India have exclusive jurisdiction over any such dispute. This does not take away any right you may have under the consumer protection laws of the place where you live to bring a claim in your local courts or consumer forums.
+    3. **Export.** You agree not to export, re-export or transfer the App in violation of applicable export control laws or regulations.
+    4. **Entire agreement.** These Terms, together with the Privacy Policy and the License, are the entire agreement between you and us regarding your use of the App. If any provision of these Terms is found to be invalid or unenforceable, it will be modified to the minimum extent necessary to be valid, and the remaining provisions will continue in effect. Our failure to enforce any provision is not a waiver of that provision. The word "including" means "including without limitation."
+    5. **Copyright and trademarks.** Copyright © 2026 Aaron. The source code is licensed under the MIT License. The name "Inventory Buddy" and the App's icon identify this project. Please do not use them in a way that suggests your version is the official one or is endorsed by us.
+    6. **Contact.** Questions about these Terms: https://github.com/jammy-007/Inventory-Buddy/issues. Issues are public, so please do not include personal information.
 
 ---
 
