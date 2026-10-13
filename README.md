@@ -68,3 +68,11 @@ app/src/main/java/com/kitcheninventory/
   ui/common/   Shared widgets, icons, barcode scanner, formatting, ViewModel factory
   ui/theme/    Material 3 theme
 ```
+
+## Legal
+
+- [MIT License](LICENSE): the terms for using, copying and modifying the source code.
+- [Privacy Policy](PRIVACY.md): the app has no account, server or analytics, and your data stays on your device. It also explains the Google services that barcode scanning and Android backup use.
+- [Terms of Use](TERMS.md): the terms for using the app, written to sit alongside the MIT License.
+
+The privacy policy and terms are adapted from [General Legal's CC0 templates](https://github.com/General-Legal/legal-templates). They have not been reviewed by a lawyer.
